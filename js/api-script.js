@@ -31,7 +31,12 @@ document.getElementById("searchSubmit").addEventListener("click", () => {
            - Only use the Storage API to save the API key if one was inputted
 */
 function saveKey() {
-  
+  var key = document.getElementById("key");
+  let trimmed = key.value.trim();
+  if (trimmed != ""){
+    localStorage.setItem("apiKey", trimmed);
+  }
+  console.log(localStorage.getItem("apiKey"));
 }
 
 
@@ -43,6 +48,9 @@ function saveKey() {
 */
 function hideKeySetup() {
   
+  document.getElementById("keySetup").remove();
+  document.getElementById("gallerySetup").style.visibility = "visible";
+
 }
 
 
@@ -69,8 +77,29 @@ function hideKeySetup() {
              - Output error to console
              - Update photo gallery message to "Something went wrong..." 
 */
-function getImages(term) {
-  
+async function getImages(term) {
+  var key = localStorage.getItem("apiKey");
+  var gallery = document.getElementById("gallery");
+
+  /*Clear the gallery and overwrite it with a loading message*/
+  gallery.innerHTML = "We are loading we are loading we are loading...";
+
+
+  let url = "https://api.unsplash.com/photos/nDV6ahWLvEg?client_id=" + key + "&query=" + term + "&page=1&per_page=15";
+
+
+  try{
+    let our_response = await fetch(url);
+    let response_result = await our_response.json();
+    displayImages(response_result, term);
+    
+  }
+  catch(error){
+    gallery.innerHTML = "Something went wrong :(";
+    console.log("response loading failed. URL: " + url);
+    console.log(error);
+  }
+
 }
 
 
@@ -89,5 +118,23 @@ function getImages(term) {
              - Update image title tooltip to photographer name. If missing, update to empty string
 */
 function displayImages(data, term) {
-  
+  gallery = document.getElementById("gallery");
+  gallery.innerHTML="";
+  images = data.results;
+
+  console.log(images);
+  if(images.length > 0)
+  {
+      for(let i = 0; i < images.length; i++){
+        var img = document.createElement("img");
+        img.src = images[i].urls.small;
+        img.alt = (images[i].alt_description);
+        img.title = images[i].user.name;  
+    } 
+  }
+  else {
+    
+    gallery.innerHTML = "there ain't no results fool";
+      return;
+  }
 }
